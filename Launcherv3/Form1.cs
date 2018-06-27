@@ -7,6 +7,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml;
@@ -17,19 +18,22 @@ namespace Launcherv3
     public partial class Form1 : Form
     {
         bool drag;
-        bool playerHasAllRequiredFiles = false;
         int x, y;
 
+        // menu bar links
         string link_website = "http://archewow.com";
         string link_register = "http://archewow.com";
         string link_forum = "http://archewow.com";
         string link_donate = "http://archewow.com";
         string link_discord = "http://archewow.com";
 
-        string launcherv3XML_url = "http://80.235.132.198/launcherv3/listfiles.xml";
+        // the webhost launcher folder location example "http://yoursite.com/FOLDER_NAME";
+        string launcherv3_location = "http://80.235.132.198/launcherv3";
 
         private WebClient webClient;
         Stopwatch sw = new Stopwatch();    // The stopwatch which we will be using to calculate the download speed
+        string realmlist = string.Empty;
+        int realmPort = 0;
 
         public Form1()
         {
@@ -53,31 +57,71 @@ namespace Launcherv3
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            textBox1.Text = Properties.Settings.Default.custom_wow_username;
+
             pb1.Image = Properties.Resources.launcherv3_03;
             pb2.Image = Properties.Resources.launcherv3_04;
 
             pictureBox1.Enabled = false;
             pictureBox1.Image = Properties.Resources.launcherv3_play_c;
 
-            timer1.Interval = 3000; // specify interval time as you want
+            timer1.Interval = 2500; // specify interval time as you want
             timer1.Start();
         }
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            if (PlayerHasAllRequiredFiles())
-                playerHasAllRequiredFiles = true;
+            PlayerHasAllRequiredFiles();
+
+            pictureBox1.Enabled = true;
+            pictureBox1.Image = Properties.Resources.launcherv3_play_a;
 
             timer1.Stop();
         }
 
-        private bool PlayerHasAllRequiredFiles()
+        public void RetrieveServerStatusAndRealmlistinfo()
         {
+            string reply = string.Empty;
+
             XmlDocument xmlDoc = new XmlDocument();
-            xmlDoc.Load(launcherv3XML_url);
+            xmlDoc.Load(launcherv3_location + "/launcherv3.xml");
+
+            string versionX = xmlDoc.SelectSingleNode("launcher").Attributes["patchVersion"].Value;
+
+            realmlist = xmlDoc.SelectSingleNode("launcher").Attributes["realmlist"].Value;
+            realmPort = int.Parse(xmlDoc.SelectSingleNode("launcher").Attributes["realmPort"].Value);
+
+            label2.Text = string.Format("Realmlist: {0}", realmlist);
+            label2.ForeColor = Color.Lime;
+
+            TcpClient tcpClient = new TcpClient();
             try
             {
-                string versionX = xmlDoc.SelectSingleNode("ListFiles").Attributes["Version"].Value;
+                tcpClient.Connect(realmlist, realmPort);
+                label4.Text = "Realm is Online";
+                label4.ForeColor = Color.Lime;
+            }
+            catch (Exception)
+            {
+                label4.Text = "Realm is offline";
+                label4.ForeColor = Color.Red;
+            }
+            finally
+            {
+                tcpClient.Close();
+            }
+
+            xmlDoc = null;
+        }
+
+        private bool PlayerHasAllRequiredFiles()
+        {
+            RetrieveServerStatusAndRealmlistinfo();
+
+            XmlDocument xmlDoc = new XmlDocument();
+            xmlDoc.Load(launcherv3_location + "/launcherv3.xml");
+            try
+            {
 
                 foreach (XmlNode nodes in xmlDoc.SelectNodes("//file"))
                 {
@@ -89,7 +133,7 @@ namespace Launcherv3
                             {
                                 if (File.Exists(attribute.Value/*target folder name*/ + "\\" + nodes.InnerText/*filename*/))
                                 {
-                                    System.Net.WebRequest req = System.Net.HttpWebRequest.Create("http://80.235.132.198/launcherv3/files/" + nodes.InnerText);
+                                    System.Net.WebRequest req = System.Net.HttpWebRequest.Create(launcherv3_location + "/files/" + nodes.InnerText);
 
                                     req.Method = "HEAD";
 
@@ -103,14 +147,14 @@ namespace Launcherv3
 
                                             if (ContentLength != f1.Length)
                                             {
-                                                DownloadFile("http://80.235.132.198/launcherv3/files/" + nodes.InnerText, attribute.Value + "\\" + nodes.InnerText);
+                                                DownloadFile(launcherv3_location  + "/files/" + nodes.InnerText, attribute.Value + "\\" + nodes.InnerText);
                                             }
                                         }
                                     }
                                 }
                                 else
                                 {
-                                    DownloadFile("http://80.235.132.198/launcherv3/files/" + nodes.InnerText, attribute.Value + "\\" + nodes.InnerText);
+                                    DownloadFile(launcherv3_location + "/files / " + nodes.InnerText, attribute.Value + "\\" + nodes.InnerText);
                                 }
                             }
                             else
@@ -174,8 +218,8 @@ namespace Launcherv3
                 (e.BytesReceived / 1024d / 1024d).ToString("0.00"),
                 (e.TotalBytesToReceive / 1024d / 1024d).ToString("0.00"));
 
-            pictureBox1.Enabled = true;
-            pictureBox1.Image = Properties.Resources.launcherv3_play_a;
+            pictureBox1.Enabled = false;
+            pictureBox1.Image = Properties.Resources.launcherv3_play_c;
         }
 
         // The event that will trigger when the WebClient is completed
@@ -324,6 +368,63 @@ namespace Launcherv3
         private void pictureBox1_MouseEnter(object sender, EventArgs e)
         {
             pictureBox1.Image = Properties.Resources.launcherv3_play_b;
+        }
+
+        private void pictureBox1_Click(object sender, EventArgs e)
+        {
+            using (var outputFile = new StreamWriter(@"WTF\Config.WTF", true))
+                outputFile.WriteLine("set realmlist " + realmlist);
+
+            //SET accountName
+            if (checkBox2.Checked)
+            {
+                using (var outputFile = new StreamWriter(@"WTF\Config.WTF", true))
+                    outputFile.WriteLine("set accountName \"" + textBox1.Text + "\"");
+            }
+            else
+            {
+                using (var outputFile = new StreamWriter(@"WTF\Config.WTF", true))
+                    outputFile.WriteLine("set accountName \"\"");
+            }
+
+            Properties.Settings.Default.custom_wow_username = textBox1.Text;
+            Properties.Settings.Default.Save();
+
+            if (checkBox1.Checked)
+            {
+                if (Directory.Exists("Cache"))
+                {
+                    var dir = new DirectoryInfo("Cache");
+                    dir.Delete(true); // true => recursive delete
+                }
+            }
+
+            try
+            {
+                if (!File.Exists("Wow.exe"))
+                {
+                    MessageBox.Show("The WoW.exe file could not be located!", "Something went wrong!");
+                    return;
+                }
+                else
+                {
+                    string programPath = Directory.GetCurrentDirectory() + "\\Wow.exe";
+                    Process proc = new Process();
+                    proc.StartInfo.FileName = programPath;
+                    proc.Start();
+                    this.WindowState = FormWindowState.Minimized;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            Properties.Settings.Default.custom_wow_username = textBox1.Text;
+            Properties.Settings.Default.Save();
         }
 
         private void pictureBox1_MouseLeave(object sender, EventArgs e)
