@@ -106,6 +106,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="launcherv3.png" />
     <Content Include="Resources\launcherv3.png" />
     <Content Include="Resources\launcherv3_03.png" />
     <Content Include="Resources\launcherv3_03b.png" />

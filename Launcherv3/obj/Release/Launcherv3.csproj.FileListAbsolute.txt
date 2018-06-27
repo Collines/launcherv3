@@ -26,3 +26,4 @@ D:\Development\ElunaWotlk\c# project launcher\asd\Launcherv3\obj\Release\Launche
 D:\Development\ElunaWotlk\c# project launcher\asd\Launcherv3\obj\Release\Launcherv3.csproj.CoreCompileInputs.cache
 D:\Development\ElunaWotlk\c# project launcher\asd\Launcherv3\obj\Release\Launcherv3.exe
 D:\Development\ElunaWotlk\c# project launcher\asd\Launcherv3\obj\Release\Launcherv3.pdb
+D:\Development\ElunaWotlk\c# project launcher\asd\Launcherv3\obj\Release\Launcherv3.csprojAssemblyReference.cache
