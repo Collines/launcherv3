@@ -21,18 +21,21 @@ namespace Launcherv3
         int x, y;
 
         // menu bar links
-        string link_website = "http://archewow.com";
-        string link_register = "http://archewow.com";
-        string link_forum = "http://archewow.com";
-        string link_donate = "http://archewow.com";
-        string link_discord = "http://archewow.com";
+        string link_website =       "http://archewow.com";
+        string link_register =      "http://archewow.com";
+        string link_forum =         "http://archewow.com";
+        string link_donate =        "http://archewow.com";
+        string link_discord =       "http://archewow.com";
 
-        // the webhost launcher folder location example "http://yoursite.com/FOLDER_NAME";
-        string launcherv3_location = "http://80.235.132.198/launcherv3";
+        // the webhost launcher folder location example http://yoursite.com/FOLDER_NAME/ MUST add "/" at the end
+        string launcherv3_location = "http://localhost/launcherv3/";
 
-        private WebClient webClient;
+        WebClient webClient = new WebClient();
+
         Stopwatch sw = new Stopwatch();    // The stopwatch which we will be using to calculate the download speed
+
         string realmlist = string.Empty;
+
         int realmPort = 0;
 
         public Form1()
@@ -65,31 +68,33 @@ namespace Launcherv3
             pictureBox1.Enabled = false;
             pictureBox1.Image = Properties.Resources.launcherv3_play_c;
 
-            timer1.Interval = 2500; // specify interval time as you want
+            timer1.Interval = 2000; // specify interval time as you want
             timer1.Start();
         }
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            PlayerHasAllRequiredFiles();
+            if (DownloadRequiredFiles())
+                pictureBox1.Enabled = true;
 
-            pictureBox1.Enabled = true;
             pictureBox1.Image = Properties.Resources.launcherv3_play_a;
 
             timer1.Stop();
+
+            timer1.Dispose();
         }
 
         public void RetrieveServerStatusAndRealmlistinfo()
         {
             string reply = string.Empty;
 
-            XmlDocument xmlDoc = new XmlDocument();
-            xmlDoc.Load(launcherv3_location + "/launcherv3.xml");
+            XmlDocument _xmlDoc = new XmlDocument();
+            _xmlDoc.Load("http://localhost/launcherv3/launcherv3.xml");
 
-            string versionX = xmlDoc.SelectSingleNode("launcher").Attributes["patchVersion"].Value;
+            string versionX = _xmlDoc.SelectSingleNode("launcher").Attributes["patchVersion"].Value;
 
-            realmlist = xmlDoc.SelectSingleNode("launcher").Attributes["realmlist"].Value;
-            realmPort = int.Parse(xmlDoc.SelectSingleNode("launcher").Attributes["realmPort"].Value);
+            realmlist = _xmlDoc.SelectSingleNode("launcher").Attributes["realmlist"].Value;
+            realmPort = int.Parse(_xmlDoc.SelectSingleNode("launcher").Attributes["realmPort"].Value);
 
             label2.Text = string.Format("Realmlist: {0}", realmlist);
             label2.ForeColor = Color.Lime;
@@ -111,18 +116,17 @@ namespace Launcherv3
                 tcpClient.Close();
             }
 
-            xmlDoc = null;
+            _xmlDoc = null;
         }
 
-        private bool PlayerHasAllRequiredFiles()
+        private bool DownloadRequiredFiles()
         {
             RetrieveServerStatusAndRealmlistinfo();
 
             XmlDocument xmlDoc = new XmlDocument();
-            xmlDoc.Load(launcherv3_location + "/launcherv3.xml");
+            xmlDoc.Load("http://localhost/launcherv3/launcherv3.xml");
             try
             {
-
                 foreach (XmlNode nodes in xmlDoc.SelectNodes("//file"))
                 {
                     foreach (XmlAttribute attribute in nodes.Attributes)
@@ -131,9 +135,9 @@ namespace Launcherv3
                         {
                             if (Directory.Exists(attribute.Value))
                             {
-                                if (File.Exists(attribute.Value/*target folder name*/ + "\\" + nodes.InnerText/*filename*/))
+                                if (File.Exists(attribute.Value/*target folder name*/ + @"/" + nodes.InnerText/*filename*/))
                                 {
-                                    System.Net.WebRequest req = System.Net.HttpWebRequest.Create(launcherv3_location + "/files/" + nodes.InnerText);
+                                    System.Net.WebRequest req = System.Net.HttpWebRequest.Create("http://localhost/launcherv3/files/" + nodes.InnerText);
 
                                     req.Method = "HEAD";
 
@@ -143,19 +147,15 @@ namespace Launcherv3
 
                                         if (int.TryParse(resp.Headers.Get("Content-Length"), out ContentLength))
                                         {
-                                            FileInfo f1 = new FileInfo(attribute.Value/*target folder name*/ + "\\" + nodes.InnerText/*filename*/);
+                                            FileInfo f1 = new FileInfo(attribute.Value/*target folder name*/ + @"/" + nodes.InnerText/*filename*/);
 
                                             if (ContentLength != f1.Length)
-                                            {
-                                                DownloadFile(launcherv3_location  + "/files/" + nodes.InnerText, attribute.Value + "\\" + nodes.InnerText);
-                                            }
+                                                DownloadFile("http://localhost/launcherv3/files/" + nodes.InnerText, attribute.Value + @"/" + nodes.InnerText);
                                         }
                                     }
                                 }
                                 else
-                                {
-                                    DownloadFile(launcherv3_location + "/files / " + nodes.InnerText, attribute.Value + "\\" + nodes.InnerText);
-                                }
+                                    DownloadFile("http://localhost/launcherv3/files/" + nodes.InnerText, attribute.Value + @"/" + nodes.InnerText);
                             }
                             else
                                 MessageBox.Show("There is an error selecting the destination folder for the downloaded file!");
@@ -168,10 +168,6 @@ namespace Launcherv3
                 MessageBox.Show(string.Format("Please Report the following error to our server:\n \n {0}", ex.ToString()));
                 return false;
             }
-            finally
-            {
-                xmlDoc = null;
-            }
 
             return true;
         }
@@ -182,13 +178,13 @@ namespace Launcherv3
             {
                 webClient.DownloadFileCompleted += new AsyncCompletedEventHandler(Completed);
                 webClient.DownloadProgressChanged += new DownloadProgressChangedEventHandler(ProgressChanged);
-
+            
                 // The variable that will be holding the url address (making sure it starts with http://)
                 Uri URL = urlAddress.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ? new Uri(urlAddress) : new Uri("http://" + urlAddress);
-
+            
                 // Start the stopwatch which we will be using to calculate the download speed
                 sw.Start();
-
+            
                 try
                 {
                     // Start downloading the file
@@ -240,7 +236,6 @@ namespace Launcherv3
                 pictureBox1.Image = Properties.Resources.launcherv3_play_a;
             }
         }
-
 
         private void panel1_MouseUp(object sender, MouseEventArgs e)
         {
