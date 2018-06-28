@@ -66,6 +66,8 @@ namespace Launcherv3
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            webBrowser1.Navigate(launcherv3_location + "html");
+
             if (!_TryPing(siteAddress, sitePort, 600))
             {
                 MessageBox.Show("Host is currently restarting, please try again later!");
