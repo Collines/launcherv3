@@ -31,6 +31,7 @@
             this.components = new System.ComponentModel.Container();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.panel1 = new System.Windows.Forms.Panel();
+            this.label5 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
@@ -47,10 +48,10 @@
             this.panel4 = new System.Windows.Forms.Panel();
             this.panel3 = new System.Windows.Forms.Panel();
             this.panel2 = new System.Windows.Forms.Panel();
-            this.newProgressBar1 = new NewProgressBar();
             this.pb2 = new System.Windows.Forms.PictureBox();
             this.pb1 = new System.Windows.Forms.PictureBox();
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
+            this.newProgressBar1 = new NewProgressBar();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pb2)).BeginInit();
@@ -65,6 +66,7 @@
             // 
             this.panel1.BackgroundImage = global::Launcherv3.Properties.Resources.launcherv3;
             this.panel1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.panel1.Controls.Add(this.label5);
             this.panel1.Controls.Add(this.label4);
             this.panel1.Controls.Add(this.label3);
             this.panel1.Controls.Add(this.label2);
@@ -93,6 +95,18 @@
             this.panel1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseDown);
             this.panel1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseMove);
             this.panel1.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panel1_MouseUp);
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.BackColor = System.Drawing.Color.Transparent;
+            this.label5.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label5.ForeColor = System.Drawing.Color.Red;
+            this.label5.Location = new System.Drawing.Point(700, 183);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(49, 20);
+            this.label5.TabIndex = 1;
+            this.label5.Text = "-- ms";
             // 
             // label4
             // 
@@ -288,14 +302,6 @@
             this.panel2.MouseEnter += new System.EventHandler(this.panel2_MouseEnter);
             this.panel2.MouseLeave += new System.EventHandler(this.panel2_MouseLeave);
             // 
-            // newProgressBar1
-            // 
-            this.newProgressBar1.ForeColor = System.Drawing.Color.Red;
-            this.newProgressBar1.Location = new System.Drawing.Point(70, 392);
-            this.newProgressBar1.Name = "newProgressBar1";
-            this.newProgressBar1.Size = new System.Drawing.Size(441, 15);
-            this.newProgressBar1.TabIndex = 4;
-            // 
             // pb2
             // 
             this.pb2.Cursor = System.Windows.Forms.Cursors.Hand;
@@ -334,6 +340,14 @@
             this.webBrowser1.Size = new System.Drawing.Size(501, 206);
             this.webBrowser1.TabIndex = 0;
             this.webBrowser1.Url = new System.Uri("https://na.archerage.to/request/launcher/", System.UriKind.Absolute);
+            // 
+            // newProgressBar1
+            // 
+            this.newProgressBar1.ForeColor = System.Drawing.Color.Red;
+            this.newProgressBar1.Location = new System.Drawing.Point(70, 392);
+            this.newProgressBar1.Name = "newProgressBar1";
+            this.newProgressBar1.Size = new System.Drawing.Size(441, 15);
+            this.newProgressBar1.TabIndex = 4;
             // 
             // Form1
             // 
@@ -381,6 +395,7 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Label label5;
     }
 }
 

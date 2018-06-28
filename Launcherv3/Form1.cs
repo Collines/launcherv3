@@ -7,6 +7,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -27,6 +28,10 @@ namespace Launcherv3
         string link_forum =         "http://archewow.com";
         string link_donate =        "http://archewow.com";
         string link_discord =       "http://archewow.com";
+
+        // site address or IP no WWW no HTTP
+        string siteAddress = "80.235.132.198";
+        int sitePort = 80;
 
         // the webhost launcher folder location example http://yoursite.com/FOLDER_NAME/ MUST add "/" at the end
         string launcherv3_location = "http://80.235.132.198/launcherv3/";
@@ -61,28 +66,60 @@ namespace Launcherv3
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            if (File.Exists("Wow.exe"))
+            if (!_TryPing(siteAddress, sitePort, 600))
             {
-                textBox1.Text = Properties.Settings.Default.custom_wow_username;
-
-                pb1.Image = Properties.Resources.launcherv3_03;
-                pb2.Image = Properties.Resources.launcherv3_04;
-
-                pictureBox1.Enabled = false;
-                pictureBox1.Image = Properties.Resources.launcherv3_play_c;
-
-                timer1.Interval = 1500; // specify interval time as you want
-                timer1.Start();
+                MessageBox.Show("Host is currently restarting, please try again later!");
+                Close();
             }
             else
             {
-                MessageBox.Show("Must be placed in World of Warcraft folder!");
-                Close();
+                if (File.Exists("Wow.exe"))
+                {
+                    textBox1.Text = Properties.Settings.Default.custom_wow_username;
+
+                    pb1.Image = Properties.Resources.launcherv3_03;
+                    pb2.Image = Properties.Resources.launcherv3_04;
+
+                    pictureBox1.Enabled = false;
+                    pictureBox1.Image = Properties.Resources.launcherv3_play_c;
+
+                    timer1.Interval = 1500; // specify interval time as you want
+                    timer1.Start();
+                }
+                else
+                {
+                    MessageBox.Show("Must be placed in World of Warcraft folder!");
+
+                    Close();
+                }
             }
         }
 
         private void timer1_Tick(object sender, EventArgs e)
         {
+            RetrieveRealmlistInfo();
+
+            DateTime startTime, endTime;
+            startTime = DateTime.Now;
+
+            if (_TryPing(realmlist, realmPort, 1000))
+            {
+                label4.Text = "Realm is Online";
+                label4.ForeColor = Color.Lime;
+
+
+                endTime = DateTime.Now;
+                Double elapsedMillisecs = ((TimeSpan)(endTime - startTime)).TotalMilliseconds;
+
+                label5.Text = Convert.ToInt32(elapsedMillisecs).ToString() + " ms";
+                label5.ForeColor = Color.Lime;
+            }
+            else
+            {
+                label4.Text = "Realm is offline";
+                label4.ForeColor = Color.Red;
+            }
+
             if (DownloadRequiredFiles())
                 pictureBox1.Enabled = true;
 
@@ -93,10 +130,8 @@ namespace Launcherv3
             timer1.Dispose();
         }
 
-        public void RetrieveServerStatusAndRealmlistinfo()
+        public void RetrieveRealmlistInfo()
         {
-            string reply = string.Empty;
-
             XmlDocument _xmlDoc = new XmlDocument();
             _xmlDoc.Load(launcherv3_location + "launcherv3.xml");
 
@@ -107,18 +142,8 @@ namespace Launcherv3
 
             label2.Text = string.Format("Realmlist: {0}", realmlist);
             label2.ForeColor = Color.Lime;
-
-            if (_TryPing(realmlist, realmPort, 200))
-            {
-                label4.Text = "Realm is Online";
-                label4.ForeColor = Color.Lime;
-            }
-            else
-            {
-                label4.Text = "Realm is offline";
-                label4.ForeColor = Color.Red;
-            }
         }
+
         private static bool _TryPing(string strIpAddress, int intPort, int nTimeoutMsec)
         {
             Socket socket = null;
@@ -126,7 +151,6 @@ namespace Launcherv3
             {
                 socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontLinger, false);
-
 
                 IAsyncResult result = socket.BeginConnect(strIpAddress, intPort, null, null);
                 bool success = result.AsyncWaitHandle.WaitOne(nTimeoutMsec, true);
@@ -144,48 +168,8 @@ namespace Launcherv3
             }
         }
 
-        public bool IsServerUp()
-        {
-            bool isUp;
-
-            try
-            {
-                using (TcpClient tcp = new TcpClient())
-                {
-                    IAsyncResult ar = tcp.BeginConnect(realmlist, realmPort, null, null);
-                    WaitHandle wh = ar.AsyncWaitHandle;
-
-                    try
-                    {
-                        if (!wh.WaitOne(TimeSpan.FromMilliseconds(50000), false))
-                        {
-                            tcp.EndConnect(ar);
-                            tcp.Close();
-                            throw new SocketException();
-                        }
-
-                        isUp = true;
-                        tcp.EndConnect(ar);
-                    }
-                    finally
-                    {
-                        wh.Close();
-                    }
-                }
-            }
-            catch (SocketException ex)
-            {
-                MessageBox.Show(string.Format("TCP connection to server {0} failed.", realmlist));
-                isUp = false;
-            }
-
-            return isUp;
-        }
-
         private bool DownloadRequiredFiles()
         {
-            RetrieveServerStatusAndRealmlistinfo();
-
             XmlDocument xmlDoc = new XmlDocument();
             xmlDoc.Load(launcherv3_location + "launcherv3.xml");
             try
@@ -260,7 +244,6 @@ namespace Launcherv3
             }
         }
 
-        // The event that will fire whenever the progress of the WebClient is changed
         private void ProgressChanged(object sender, DownloadProgressChangedEventArgs e)
         {
             // Calculate download speed and output it to labelSpeed.
@@ -281,7 +264,6 @@ namespace Launcherv3
             pictureBox1.Image = Properties.Resources.launcherv3_play_c;
         }
 
-        // The event that will trigger when the WebClient is completed
         private void Completed(object sender, AsyncCompletedEventArgs e)
         {
             // Reset the stopwatch.
