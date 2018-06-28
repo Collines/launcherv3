@@ -56,6 +56,9 @@
   <PropertyGroup>
     <SignManifests>false</SignManifests>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>launcher_icon_nzo_icon.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -107,6 +110,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="launcherv3.png" />
+    <Content Include="launcher_icon_nzo_icon.ico" />
     <Content Include="Resources\launcherv3.png" />
     <Content Include="Resources\launcherv3_03.png" />
     <Content Include="Resources\launcherv3_03b.png" />
