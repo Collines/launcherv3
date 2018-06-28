@@ -2,7 +2,10 @@
 C# Window Form Launcher V3
 
 Please relad the copyright bellow if you want to use this launcher's code for your project and you may only have to change the images in order to use it.
+
 Free of use, do not sell, this is prohibited.
+
+In order to use this launcher you MUST change all the images and use yours!
 
 ![Launcher Screenshot](launcher_screenshot.jpg)
 
@@ -11,7 +14,7 @@ Free of use, do not sell, this is prohibited.
 Copyright (c) Launcher v3 by Lamiel
 
 Permission to download and use this software code side only, all images provided in this launcher are prohibited to be re-used and only the code-side you may use.
-Free of use, do not sell, this is prohibited.
+Free of use, do not sell, this is prohibited. In order to use this launcher you MUST change all the images and use yours!
 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
